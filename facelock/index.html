@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FaceLock Messenger</title><link rel="stylesheet" href="style.css"></head><body>
+<main id="app" class="locked">
+<section id="cam"><video id="v" muted playsinline></video></section>
+<section id="lock"><h1>Unlock your messages</h1><p id="msg" role="status" aria-live="polite">Loading face models…</p>
+<label class="field" for="name">Your display name<input id="name" maxlength="32" autocomplete="nickname" placeholder="Name shown in chat" required></label>
+<label class="field" for="invite">Room invite link</label><div class="invite"><input id="invite" readonly aria-label="Room invite link"><button id="share" type="button" class="ghost">Copy link</button></div>
+<div class="row"><button id="main" disabled>Please wait</button><button id="wipe" class="ghost" hidden>Delete face data</button></div>
+<small>Your face data stays on this device, encrypted.</small></section>
+<section id="chat" hidden><header><b>Shared chat</b><span id="network" class="pill" data-s="connecting">Connecting</span><span id="state" class="pill" data-s="ok">verified</span><button id="shareChat" class="ghost" type="button">Copy invite</button><button id="lockBtn" class="ghost">Lock now</button></header>
+<div id="log" aria-live="polite"></div><p id="chatStatus" role="status" aria-live="polite"></p><form id="f"><input id="in" maxlength="2000" placeholder="Write a message" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
+<div id="shield" hidden><p id="why"></p></div></section></main>
+<script src="vendor/face-api.js"></script><script type="module" src="app.js"></script></body></html>
