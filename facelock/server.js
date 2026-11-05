@@ -85,7 +85,10 @@ function createAppServer(root = __dirname) {
     const broadcastPresence = room => {
       const members = rooms.get(room);
       if (!members) return;
-      const payload = JSON.stringify({ type: 'presence', count: members.size });
+      const unlockedMembers = [...members]
+        .filter(member => member.readyState === WebSocket.OPEN)
+        .map(member => ({ name: member.displayName, unlocked: true }));
+      const payload = JSON.stringify({ type: 'presence', count: unlockedMembers.length, members: unlockedMembers });
       for (const member of members) {
         if (member.readyState === WebSocket.OPEN) member.send(payload);
       }
@@ -123,8 +126,15 @@ function createAppServer(root = __dirname) {
 
         roomName = room;
         displayName = name;
+        client.displayName = displayName;
         if (!rooms.has(roomName)) rooms.set(roomName, new Set());
-        rooms.get(roomName).add(client);
+        const members = rooms.get(roomName);
+        for (const member of members) {
+          if (member.readyState === WebSocket.OPEN) {
+            member.send(JSON.stringify({ type: 'member_joined', name: displayName }));
+          }
+        }
+        members.add(client);
         send({ type: 'joined', room: roomName });
         broadcastPresence(roomName);
         return;
@@ -165,7 +175,13 @@ function createAppServer(root = __dirname) {
       if (!roomName) return;
       const members = rooms.get(roomName);
       members?.delete(client);
-      if (members?.size) broadcastPresence(roomName);
+      if (members?.size) {
+        const leftNotice = JSON.stringify({ type: 'member_left', name: displayName });
+        for (const member of members) {
+          if (member.readyState === WebSocket.OPEN) member.send(leftNotice);
+        }
+        broadcastPresence(roomName);
+      }
       else rooms.delete(roomName);
     });
   });

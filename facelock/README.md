@@ -19,6 +19,7 @@ If startup reports that the camera is busy, close other browser tabs or apps usi
 - **Guard:** once a second while unlocked. Blurs the chat if no face, a second face, or a stranger; locks after 3 stranger ticks, 60 s idle, or tab switch.
 - **Storage:** face descriptor encrypted with a non-extractable AES-GCM key in IndexedDB. No face images or descriptors are sent to the server. "Delete face data" wipes both.
 - **Chat:** live room messages are relayed to connected room members. Messages are not saved and disappear when everyone leaves. Anyone with the invite link can join.
+- **Unlock presence:** after a person passes face matching and joins the room, everyone sees their name listed as unlocked. Locking or disconnecting removes them from the online list.
 
 ## Add to your Next.js messenger
 1. Copy `vendor/`, `models/`, `face-lock.js` into `public/face-lock/`.

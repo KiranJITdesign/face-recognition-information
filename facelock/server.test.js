@@ -53,13 +53,24 @@ test('serves the app and relays messages only to their room', async () => {
 
   const first = await connect(`ws://127.0.0.1:${address.port}/ws`);
   const firstJoined = waitForMessage(first, message => message.type === 'joined');
+  const firstPresence = waitForMessage(first, message => message.type === 'presence');
   first.send(JSON.stringify({ type: 'join', room: 'room-one', name: 'Alice' }));
   await firstJoined;
+  assert.deepEqual((await firstPresence).members, [{ name: 'Alice', unlocked: true }]);
 
   const second = await connect(`ws://127.0.0.1:${address.port}/ws`);
   const secondJoined = waitForMessage(second, message => message.type === 'joined');
+  const joinedNotice = waitForMessage(first, message => message.type === 'member_joined');
+  const updatedFirstPresence = waitForMessage(first, message => message.type === 'presence' && message.count === 2);
+  const secondPresence = waitForMessage(second, message => message.type === 'presence');
   second.send(JSON.stringify({ type: 'join', room: 'room-one', name: 'Bob' }));
   await secondJoined;
+  assert.deepEqual(await joinedNotice, { type: 'member_joined', name: 'Bob' });
+  assert.deepEqual((await updatedFirstPresence).members, [
+    { name: 'Alice', unlocked: true },
+    { name: 'Bob', unlocked: true }
+  ]);
+  assert.equal((await secondPresence).count, 2);
 
   const firstMessage = waitForMessage(first, message => message.type === 'message');
   const secondMessage = waitForMessage(second, message => message.type === 'message');
@@ -82,4 +93,10 @@ test('serves the app and relays messages only to their room', async () => {
   });
   first.send(JSON.stringify({ type: 'message', text: 'Only room one' }));
   assert.equal(await isolated, null);
+
+  const leftNotice = waitForMessage(first, message => message.type === 'member_left');
+  const updatedPresence = waitForMessage(first, message => message.type === 'presence' && message.count === 1);
+  second.close();
+  assert.deepEqual(await leftNotice, { type: 'member_left', name: 'Bob' });
+  assert.deepEqual((await updatedPresence).members, [{ name: 'Alice', unlocked: true }]);
 });

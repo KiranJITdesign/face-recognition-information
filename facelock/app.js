@@ -40,6 +40,13 @@ function setNetwork(state, text) {
   $('in').disabled = !connected;
   $('send').disabled = !connected;
 }
+function appendSystemMessage(text) {
+  const item = document.createElement('p');
+  item.className = 'system-message';
+  item.textContent = text;
+  $('log').append(item);
+  $('log').scrollTop = $('log').scrollHeight;
+}
 function appendMessage({ name, text, fromSelf }) {
   const item = document.createElement('article');
   item.className = `m${fromSelf ? ' mine' : ''}`;
@@ -73,7 +80,15 @@ function connectChat() {
       setNetwork('online', 'Connected');
       $('chatStatus').textContent = 'Connected. Messages are not saved after everyone leaves the room.';
     } else if (data.type === 'presence') {
-      $('network').textContent = data.count === 1 ? 'You are alone' : `${data.count} online`;
+      const members = Array.isArray(data.members) ? data.members : [];
+      $('network').textContent = data.count === 1 ? 'You are alone' : `${data.count} unlocked`;
+      $('members').textContent = members.length
+        ? members.map(member => `${member.name}${member.name === currentName() ? ' (you)' : ''} — ${member.unlocked ? 'unlocked' : 'locked'}`).join(' · ')
+        : 'Waiting for someone to unlock and join…';
+    } else if (data.type === 'member_joined') {
+      appendSystemMessage(`${data.name} unlocked and joined the chat.`);
+    } else if (data.type === 'member_left') {
+      appendSystemMessage(`${data.name} left the chat.`);
     } else if (data.type === 'message') appendMessage(data);
     else if (data.type === 'error') $('chatStatus').textContent = data.message;
   });

@@ -7,6 +7,7 @@
 <div class="row"><button id="main" disabled>Please wait</button><button id="wipe" class="ghost" hidden>Delete face data</button></div>
 <small>Your face data stays on this device, encrypted.</small></section>
 <section id="chat" hidden><header><b>Shared chat</b><span id="network" class="pill" data-s="connecting">Connecting</span><span id="state" class="pill" data-s="ok">verified</span><button id="shareChat" class="ghost" type="button">Copy invite</button><button id="lockBtn" class="ghost">Lock now</button></header>
+<p id="members" class="members" role="status" aria-live="polite">Waiting for someone to unlock and join…</p>
 <div id="log" aria-live="polite"></div><p id="chatStatus" role="status" aria-live="polite"></p><form id="f"><input id="in" maxlength="2000" placeholder="Write a message" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 <div id="shield" hidden><p id="why"></p></div></section></main>
 <script src="vendor/face-api.js"></script><script type="module" src="app.js"></script></body></html>

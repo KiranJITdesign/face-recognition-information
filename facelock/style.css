@@ -13,9 +13,11 @@ button:focus-visible,input:focus-visible{outline:2px solid #22d3ee;outline-offse
 #chat{position:relative;overflow:hidden}header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #ffffff1a;flex-wrap:wrap}header b{flex:1}
 .pill{font-size:12px;padding:3px 10px;border-radius:99px;background:#16a34a33;color:#86efac}.pill:not([data-s=ok]){background:#e11d4833;color:#fda4af}
 #network[data-s=connecting]{background:#eab30833;color:#fde68a}#network[data-s=offline]{background:#e11d4833;color:#fda4af}
+.members{margin:0;padding:10px 18px;border-bottom:1px solid #ffffff1a;color:#c5c9e8;font-size:13px}
 #log{height:52vh;min-height:220px;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:8px}
 .m{align-self:flex-start;max-width:75%;background:#ffffff17;padding:8px 13px;border-radius:16px 16px 16px 4px;word-break:break-word}
 .m.mine{align-self:flex-end;background:var(--a);border-radius:16px 16px 4px 16px}.author{font-size:11px;opacity:.76;margin-bottom:3px}
+.system-message{align-self:center;max-width:90%;margin:4px 0;color:#a9b0dd;font-size:13px;text-align:center}
 #f{display:flex;gap:10px;padding:14px 18px;border-top:1px solid #ffffff1a}#in{flex:1;background:#ffffff12;border:1px solid #ffffff22;border-radius:12px;padding:10px 14px;color:inherit;font:inherit}
 #chatStatus{min-height:1.5em;margin:0;padding:0 18px;color:#a9b0dd;font-size:13px}#in:disabled{opacity:.55}
 .field{display:block;text-align:left;margin:12px 0 6px;color:#c5c9e8;font-size:13px}.field input,.invite input{width:100%;margin-top:5px;background:#ffffff12;border:1px solid #ffffff22;border-radius:10px;padding:10px 12px;color:inherit;font:inherit}
