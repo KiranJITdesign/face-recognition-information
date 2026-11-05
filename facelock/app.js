@@ -5,7 +5,7 @@ const room = roomParam && /^[A-Za-z0-9_-]{6,32}$/.test(roomParam) ? roomParam : 
 if (room !== roomParam) {
   const url = new URL(location.href); url.searchParams.set('room', room); history.replaceState(null, '', url);
 }
-let tpl = null, stop = null, socket = null, strikes = 0, idle = 0, cameraReady = false;
+let tpl = null, stop = null, socket = null, reconnectTimer = null, reconnectDelay = 1000, strikes = 0, cameraReady = false;
 const currentName = () => $('name').value.trim();
 const inviteUrl = () => {
   const url = new URL(location.href);
@@ -60,7 +60,8 @@ function appendMessage({ name, text, fromSelf }) {
   $('log').scrollTop = $('log').scrollHeight;
 }
 function connectChat() {
-  if (socket) socket.close();
+  if (socket && socket.readyState < WebSocket.CLOSING) return;
+  clearTimeout(reconnectTimer);
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const nextSocket = new WebSocket(`${protocol}//${location.host}/ws`);
   socket = nextSocket;
@@ -77,6 +78,7 @@ function connectChat() {
     try { data = JSON.parse(event.data); }
     catch { $('chatStatus').textContent = 'The server sent an unreadable response.'; return; }
     if (data.type === 'joined') {
+      reconnectDelay = 1000;
       setNetwork('online', 'Connected');
       $('chatStatus').textContent = 'Connected. Messages are not saved after everyone leaves the room.';
     } else if (data.type === 'presence') {
@@ -96,10 +98,14 @@ function connectChat() {
     if (socket !== nextSocket) return;
     socket = null;
     setNetwork('offline', 'Disconnected');
-    $('chatStatus').textContent = 'Disconnected from the chat server. Unlock again to reconnect.';
+    if (app.className === 'open') {
+      $('chatStatus').textContent = 'Connection lost. Reconnecting…';
+      reconnectTimer = setTimeout(connectChat, reconnectDelay);
+      reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+    }
   });
   nextSocket.addEventListener('error', () => {
-    if (socket === nextSocket) $('chatStatus').textContent = 'Could not reach the chat server. Check your connection and server URL.';
+    if (socket === nextSocket) $('chatStatus').textContent = 'Could not reach the chat server. Reconnecting…';
   });
 }
 async function copyInvite() {
@@ -130,7 +136,7 @@ async function refresh() {
   say(tpl ? 'Look at the camera, then press Unlock.' : 'No face enrolled yet. Enroll once to protect this chat.');
 }
 function unlock() {
-  app.className = 'open'; $('lock').hidden = true; $('chat').hidden = false; strikes = 0; poke();
+  app.className = 'open'; $('lock').hidden = true; $('chat').hidden = false; strikes = 0;
   connectChat();
   stop = F.guard(v, tpl, s => {
     $('state').textContent = s === 'ok' ? 'verified' : s; $('state').dataset.s = s; $('shield').hidden = s === 'ok';
@@ -139,14 +145,19 @@ function unlock() {
   });
 }
 function lock() {
+  clearTimeout(reconnectTimer);
+  reconnectTimer = null;
   stop?.(); stop = null;
   F.stopCamera(v); cameraReady = false;
   if (socket) { const activeSocket = socket; socket = null; activeSocket.close(); }
   app.className = 'locked'; $('chat').hidden = true; $('shield').hidden = true; $('lock').hidden = false; refresh();
 }
-const poke = () => { clearTimeout(idle); idle = setTimeout(() => stop && lock(), 60000); }; // auto-lock after 60 s idle
-['pointermove', 'keydown'].forEach(e => addEventListener(e, () => stop && poke()));
-document.addEventListener('visibilitychange', () => document.hidden && stop && lock());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && app.className === 'open' && (!socket || socket.readyState >= WebSocket.CLOSING)) {
+    clearTimeout(reconnectTimer);
+    connectChat();
+  }
+});
 
 $('main').onclick = async () => {
   $('main').disabled = true;
@@ -178,9 +189,17 @@ $('lockBtn').onclick = lock;
 $('f').onsubmit = e => {
   e.preventDefault();
   const text = $('in').value.trim();
-  if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
-  socket.send(JSON.stringify({ type: 'message', text }));
-  $('in').value = '';
+  if (!text) return;
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    $('chatStatus').textContent = 'Not connected. Your message was not sent; it is still in the box.';
+    return;
+  }
+  try {
+    socket.send(JSON.stringify({ type: 'message', text }));
+    $('in').value = '';
+  } catch (error) {
+    $('chatStatus').textContent = `Message could not be sent: ${error.message}`;
+  }
 };
 
 (async () => {
