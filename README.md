@@ -4,6 +4,7 @@ In-browser face unlock and a real-time, invite-link chat. Face detection runs lo
 ## Run on your computer
 
 Install [Node.js](https://nodejs.org/) first. In a terminal, open the `facelock` folder and run:
+.
 
     npm install
     npm start
