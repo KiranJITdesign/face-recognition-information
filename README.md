@@ -1,48 +1,230 @@
-# FaceLock Messenger
-In-browser face unlock and a real-time, invite-link chat. Face detection runs locally; chat messages are relayed through the Node server.
+FaceLock Messenger
 
-## Run on your computer
+FaceLock Messenger is a browser-based messaging application that combines face recognition-based unlocking with real-time chat through invite links. Face detection and recognition run locally in the browser, while chat messages are relayed through a Node.js server.
 
-Install [Node.js](https://nodejs.org/) first. In a terminal, open the `facelock` folder and run:
-.
+Features
 
-    npm install
-    npm start
+- Face Unlock: Unlock the messenger using face recognition.
+- Liveness Detection: Random challenges such as blinking twice, turning left, or turning right.
+- Face Matching: Uses a 128-dimensional face descriptor and Euclidean distance matching.
+- Continuous Face Monitoring: Checks the user's face once every second while unlocked.
+- Real-Time Chat: Exchange messages with other members in the same room.
+- Invite-Link Sharing: Invite friends using a temporary room link.
+- Encrypted Face Storage: Stores face descriptors locally using AES-GCM encryption in IndexedDB.
+- Automatic Reconnection: Reconnects after temporary network interruptions.
+- Face Data Deletion: Allows users to delete stored biometric data.
 
-Keep this terminal open while using the app. Open http://localhost:8080 on your computer. Camera access requires localhost or HTTPS. Enter a display name, enroll your face, pass the liveness prompt, and hold still for 8 captures.
+Requirements
 
-## Share with a friend for a temporary test
+Before running the application, install:
 
-`localhost` only works on your own computer. To let a friend on another phone connect, start a temporary HTTPS tunnel in a **second terminal**, leaving `npm start` running in the first:
+- "Node.js" (https://nodejs.org/)
+- npm (included with Node.js)
+- A modern web browser with camera support
 
-    npx --yes cloudflared tunnel --url http://localhost:8080
+Installation and Setup
 
-Wait for the terminal to print a URL like `https://example.trycloudflare.com`. Open that URL on your computer, copy the room invite link shown in the app, and send the invite link to your friend. Both of you open the same invite link, enter your own display names, and enroll/unlock on your own devices.
+1. Clone or download the project and open the "facelock" folder.
 
-Keep both terminals and your computer running while chatting. The temporary tunnel URL changes when the tunnel restarts and stops working if either process exits. Anyone with the invite link can join. For a permanent link, deploy this Node app to a host that supports WebSockets and HTTPS. `PORT` can be set by the hosting provider.
+2. Install the dependencies:
 
-Run the server tests with `npm test`.
+npm install
 
-If startup reports that the camera is busy, close other browser tabs or apps using the camera and press **Retry camera**. The app releases the camera when it locks.
+3. Start the application:
 
-## What it does
-- **Liveness:** random challenge (blink twice / turn left / turn right) before enroll and unlock.
-- **Match:** 128-number face descriptor, median of 5 frames, Euclidean distance < 0.5 (`THRESH` in `face-lock.js`).
-- **Guard:** once a second while unlocked. Blurs the chat if no face, a second face, or a stranger; locks after 3 stranger ticks. Switching apps or leaving the chat idle does not close or lock the room; use **Lock now** to lock manually.
-- **Storage:** face descriptor encrypted with a non-extractable AES-GCM key in IndexedDB. No face images or descriptors are sent to the server. "Delete face data" wipes both.
-- **Chat:** live room messages are relayed to connected room members. The app reconnects after temporary network or tab-suspension interruptions and keeps unsent text in the message box. Messages are not saved and disappear when everyone leaves. Anyone with the invite link can join.
-- **Unlock presence:** after a person passes face matching and joins the room, everyone sees their name listed as unlocked. Locking or disconnecting removes them from the online list.
+npm start
 
-## Add to your Next.js messenger
-1. Copy `vendor/`, `models/`, `face-lock.js` into `public/face-lock/`.
-2. In a `"use client"` component load `<Script src="/face-lock/vendor/face-api.js" />`, then `const F = await import(/* webpackIgnore: true */ "/face-lock/face-lock.js")`.
-3. Call `F.init(video, "/face-lock/models")`, `F.liveness`, `F.matchFace`, and `F.guard` as `app.js` does.
+4. Open the application in your browser:
 
-## Security limits (read this)
-- A 2D camera is not Face ID's depth sensor. A replayed video of you can pass. Treat this as an **app lock**, not authentication.
-- It runs on the client, so anyone who can edit the page's JavaScript can bypass it. Keep server login on **WebAuthn passkeys** (`userVerification: "required"`), which is the real Face ID/Touch ID.
-- Chat messages are **not end-to-end encrypted**. The server relays them as readable text; use HTTPS in deployment and do not send sensitive information.
-- Face data is biometric data. Get consent and offer deletion (India's DPDP Act).
-- Tune `THRESH` on your own test faces. Lower means fewer false accepts, more false rejects.
+http://localhost:8080
 
-Credits: face-api.js by Vladimir Mandic (MIT), based on face-api.js by Vincent Mühler.
+Keep the terminal running while using the application. Camera access requires HTTPS or localhost.
+
+Face Enrollment and Unlocking
+
+After starting the application:
+
+1. Enter your display name.
+2. Allow camera access.
+3. Enroll your face.
+4. Complete the random liveness challenge.
+5. Hold your face steady for 8 captures.
+6. Complete face matching to unlock the messenger.
+
+Sharing the Messenger with Friends
+
+To allow another person to connect from a different device, create a temporary HTTPS tunnel using Cloudflare Tunnel.
+
+1. Keep the Node.js server running in the first terminal.
+
+2. Open a second terminal and execute:
+
+npx --yes cloudflared tunnel --url http://localhost:8080
+
+3. Wait for the terminal to generate an HTTPS URL similar to:
+
+https://example.trycloudflare.com
+
+4. Share the room invite link:
+
+- Open the HTTPS URL on your computer.
+- Copy the room invite link displayed in the application.
+- Send the invite link to your friend.
+- Both users open the same invite link.
+- Each user enters their own display name and completes face enrollment and unlocking.
+
+Note: Keep both terminals and your computer running while chatting. The temporary tunnel URL changes when the tunnel restarts. Anyone with the invite link can join.
+
+For permanent access, deploy the Node.js application to a hosting provider that supports HTTPS and WebSockets. The "PORT" environment variable can be configured by the hosting provider.
+
+Face Recognition and Security Mechanism
+
+Component| Description
+Face Descriptor| 128-number face descriptor
+Matching Method| Euclidean distance
+Matching Threshold| Less than 0.5
+Frame Processing| Median of 5 frames
+Liveness Detection| Random blink and head-turn challenges
+Face Monitoring| Once every second
+Stranger Detection| Locks after 3 stranger detection ticks
+Face Storage| AES-GCM encryption in IndexedDB
+
+The matching threshold can be modified using the "THRESH" variable in "face-lock.js".
+
+Face Monitoring and Locking
+
+The application continuously monitors the camera while the user is unlocked.
+
+The chat interface becomes blurred when:
+
+- No face is detected.
+- More than one face is detected.
+- An unknown person is detected.
+
+If a stranger is detected for three consecutive monitoring ticks, the application automatically locks.
+
+Users can also manually lock the messenger using the Lock now option.
+
+Switching applications or leaving the chat idle does not automatically close or lock the room.
+
+Chat Functionality
+
+The application supports real-time messaging between connected room members.
+
+- Messages are relayed through the Node.js server.
+- Users can see the list of currently unlocked members.
+- Locking or disconnecting removes the user from the online list.
+- Unsent messages remain in the message box during temporary network interruptions.
+- Messages are not permanently stored.
+- Messages disappear when all participants leave the room.
+- Anyone possessing the room invite link can join.
+
+Data Storage and Privacy
+
+- Face descriptors are encrypted using AES-GCM.
+- Encryption keys are stored as non-extractable keys in IndexedDB.
+- Face images and descriptors are never transmitted to the server.
+- Users can delete stored biometric data using Delete face data.
+- Chat messages are not permanently stored on the server.
+
+Integration with Next.js
+
+To integrate FaceLock Messenger into an existing Next.js application, follow these steps.
+
+1. Copy the required files
+
+Copy the following folders and files into:
+
+public/face-lock/
+
+- "vendor/"
+- "models/"
+- "face-lock.js"
+
+2. Load the face-api script
+
+Inside a ""use client"" component:
+
+<Script src="/face-lock/vendor/face-api.js" />
+
+3. Import the FaceLock module
+
+const F = await import(
+  /* webpackIgnore: true */
+  "/face-lock/face-lock.js"
+);
+
+4. Initialize face recognition
+
+Use the following functions from "face-lock.js":
+
+F.init(video, "/face-lock/models");
+F.liveness;
+F.matchFace;
+F.guard;
+
+Refer to "app.js" for the complete implementation and usage.
+
+Testing
+
+Run the following command to execute the server tests:
+
+npm test
+
+Troubleshooting
+
+Problem| Solution
+Camera is busy| Close other applications or browser tabs using the camera.
+Camera not accessible| Use localhost or an HTTPS connection.
+Face not detected| Ensure proper lighting and position your face in front of the camera.
+Application disconnects| Check your network connection.
+Tunnel URL stops working| Restart the Cloudflare tunnel and share the new URL.
+
+If startup reports that the camera is busy, close other applications accessing the camera and press Retry camera.
+
+The application releases the camera when it locks.
+
+Security Limitations
+
+Important security considerations:
+
+- A normal 2D camera cannot provide the depth sensing available in Apple Face ID hardware.
+- A replayed video of the registered user may bypass liveness detection.
+- Client-side JavaScript can be modified or bypassed.
+- This implementation should be treated as an application lock, not a secure authentication system.
+- Chat messages are not end-to-end encrypted. The server can read the messages.
+- Always use HTTPS when deploying the application.
+- Do not share sensitive information through this messenger.
+- Obtain user consent before collecting biometric data and provide an option to delete it, considering India's Digital Personal Data Protection (DPDP) Act.
+
+Recommended approach: Use WebAuthn passkeys with "userVerification: "required"" for actual server-side authentication instead of relying on browser-based face recognition.
+
+Configuration
+
+Setting| File| Purpose
+"THRESH"| "face-lock.js"| Controls face-matching sensitivity
+"PORT"| Server configuration| Sets the server port
+Face Models| "models/"| Stores face recognition models
+Face API| "vendor/"| Contains face-api.js dependencies
+
+A lower matching threshold reduces false accepts but may increase false rejections. Tune it using your own test faces.
+
+Technologies Used
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Node.js
+- Communication: WebSockets
+- Face Recognition: face-api.js
+- Face Storage: IndexedDB
+- Encryption: AES-GCM
+- Temporary HTTPS Tunnel: Cloudflare Tunnel
+- Authentication Recommendation: WebAuthn Passkeys
+
+Credits and Acknowledgements
+
+- face-api.js: Vladimir Mandic (MIT).
+- Original face-api.js: Vincent Mühler.
+
+---
+
+FaceLock Messenger – Face Recognition-Based Unlocking and Real-Time Messaging.
