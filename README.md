@@ -16,33 +16,33 @@ Features
 
 Requirements
 
-Before running the application, install:
-
 - "Node.js" (https://nodejs.org/)
 - npm (included with Node.js)
 - A modern web browser with camera support
 
 Installation and Setup
 
-1. Clone or download the project and open the "facelock" folder.
+Step 1: Open the project folder
 
-2. Install the dependencies:
+Open a terminal and navigate to the "facelock" folder.
+
+Step 2: Install dependencies
 
 npm install
 
-3. Start the application:
+Step 3: Start the application
 
 npm start
 
-4. Open the application in your browser:
+Step 4: Open the application
+
+Visit:
 
 http://localhost:8080
 
 Keep the terminal running while using the application. Camera access requires HTTPS or localhost.
 
 Face Enrollment and Unlocking
-
-After starting the application:
 
 1. Enter your display name.
 2. Allow camera access.
@@ -55,17 +55,17 @@ Sharing the Messenger with Friends
 
 To allow another person to connect from a different device, create a temporary HTTPS tunnel using Cloudflare Tunnel.
 
-1. Keep the Node.js server running in the first terminal.
+Step 1: Keep the Node.js server running in the first terminal.
 
-2. Open a second terminal and execute:
+Step 2: Open a second terminal and execute:
 
 npx --yes cloudflared tunnel --url http://localhost:8080
 
-3. Wait for the terminal to generate an HTTPS URL similar to:
+Step 3: Wait for the terminal to generate an HTTPS URL similar to:
 
 https://example.trycloudflare.com
 
-4. Share the room invite link:
+Step 4: Share the room invite link.
 
 - Open the HTTPS URL on your computer.
 - Copy the room invite link displayed in the application.
@@ -109,8 +109,6 @@ Switching applications or leaving the chat idle does not automatically close or 
 
 Chat Functionality
 
-The application supports real-time messaging between connected room members.
-
 - Messages are relayed through the Node.js server.
 - Users can see the list of currently unlocked members.
 - Locking or disconnecting removes the user from the online list.
@@ -131,7 +129,7 @@ Integration with Next.js
 
 To integrate FaceLock Messenger into an existing Next.js application, follow these steps.
 
-1. Copy the required files
+Step 1: Copy the required files
 
 Copy the following folders and files into:
 
@@ -141,20 +139,20 @@ public/face-lock/
 - "models/"
 - "face-lock.js"
 
-2. Load the face-api script
+Step 2: Load the face-api script
 
 Inside a ""use client"" component:
 
 <Script src="/face-lock/vendor/face-api.js" />
 
-3. Import the FaceLock module
+Step 3: Import the FaceLock module
 
 const F = await import(
   /* webpackIgnore: true */
   "/face-lock/face-lock.js"
 );
 
-4. Initialize face recognition
+Step 4: Initialize face recognition
 
 Use the following functions from "face-lock.js":
 
@@ -211,14 +209,15 @@ A lower matching threshold reduces false accepts but may increase false rejectio
 
 Technologies Used
 
-- Frontend: HTML, CSS, JavaScript
-- Backend: Node.js
-- Communication: WebSockets
-- Face Recognition: face-api.js
-- Face Storage: IndexedDB
-- Encryption: AES-GCM
-- Temporary HTTPS Tunnel: Cloudflare Tunnel
-- Authentication Recommendation: WebAuthn Passkeys
+Technology| Purpose
+HTML, CSS, JavaScript| Frontend
+Node.js| Backend
+WebSockets| Real-time communication
+face-api.js| Face recognition
+IndexedDB| Local face data storage
+AES-GCM| Data encryption
+Cloudflare Tunnel| Temporary HTTPS access
+WebAuthn Passkeys| Recommended authentication
 
 Credits and Acknowledgements
 
